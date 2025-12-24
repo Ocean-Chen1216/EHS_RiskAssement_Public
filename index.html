@@ -298,167 +298,155 @@
 <script>
     // Logic Data
     const riskMatrix = {"S4": {"P4": 5, "P3": 4, "P2": 4, "P1": 3}, "S3": {"P4": 4, "P3": 4, "P2": 3, "P1": 3}, "S2": {"P4": 4, "P3": 3, "P2": 3, "P1": 2}, "S1": {"P4": 3, "P3": 3, "P2": 2, "P1": 1}};
-    
-    const sDesc = {
-        "S4": "S4 重大: 死亡/永久失能/廠外洩漏",
-        "S3": "S3 高度: 永久失能/職業病/中量洩漏",
-        "S2": "S2 中度: 外送就醫/工時損失/少量洩漏",
-        "S1": "S1 輕度: 僅須急救/無損失/微量洩漏"
-    };
-    const pDesc = {
-        "P4": "P4 極可能: >1次/年 (無防護)",
-        "P3": "P3 較有可能: 1-10年1次 (部分防護)",
-        "P2": "P2 有可能: 10-100年1次 (有防護)",
-        "P1": "P1 不太可能: <100年1次 (雙重防護)"
-    };
-
+    const sDesc = { "S4": "S4 重大: 死亡/永久失能/廠外洩漏", "S3": "S3 高度: 永久失能/職業病/中量洩漏", "S2": "S2 中度: 外送就醫/工時損失/少量洩漏", "S1": "S1 輕度: 僅須急救/無損失/微量洩漏" };
+    const pDesc = { "P4": "P4 極可能: >1次/年 (無防護)", "P3": "P3 較有可能: 1-10年1次 (部分防護)", "P2": "P2 有可能: 10-100年1次 (有防護)", "P1": "P1 不太可能: <100年1次 (雙重防護)" };
     const commonHazards = ["被刺、被捲", "被割、被切", "高溫、火災", "墜落、滾落", "物體飛落", "物體倒塌", "感電", "化學品洩漏", "不當動作(人因)", "缺氧"];
     const commonCycles = ["每日", "每週", "每月", "每季", "每年", "非例行性"];
     const commonEnvs = ["室內", "室外", "高溫", "潮濕", "噪音區", "粉塵區", "實驗室", "辦公室", "局限空間"];
-
+    
     function toggleRef() {
         const ref = document.getElementById('refSection');
         const arrow = document.getElementById('toggleArrow');
-        if (ref.style.display === 'none' || ref.style.display === '') {
-            ref.style.display = 'block';
-            arrow.textContent = '▲ 收合';
-        } else {
-            ref.style.display = 'none';
-            arrow.textContent = '▼ 展開';
-        }
+        ref.style.display = (ref.style.display === 'none' || ref.style.display === '') ? 'block' : 'none';
+        arrow.textContent = ref.style.display === 'block' ? '▲ 收合' : '▼ 展開';
     }
-
+    
     function createOptions(optionsObj) {
         let html = '<option value="">請選擇</option>';
-        for (let key in optionsObj) {
-            html += `<option value="${key}">${optionsObj[key]}</option>`;
-        }
+        for (let key in optionsObj) html += `<option value="${key}">${optionsObj[key]}</option>`;
         return html;
     }
-
-    function addRow() {
+    
+    // 修改後的 addRow: 增加傳入 data 的功能
+    function addRow(data = null) {
         const tbody = document.querySelector("#assessmentTable tbody");
         const tr = document.createElement("tr");
-        
         tr.innerHTML = `
-            <td><button class="btn-remove" onclick="this.closest('tr').remove()">刪除</button></td>
-            
+            <td><button class="btn-remove" onclick="this.closest('tr').remove(); saveAllData();">刪除</button></td>
             <td><input type="text" name="col_no" placeholder="SR-01"></td>
             <td><textarea name="col_name" placeholder="車縫作業"></textarea></td>
-            
             <td><input list="cycleList" name="col2" placeholder="選/填..."><datalist id="cycleList">${commonCycles.map(c=>`<option value="${c}">`).join('')}</datalist></td>
-            
             <td><input list="envList" name="col3" placeholder="選/填..."><datalist id="envList">${commonEnvs.map(c=>`<option value="${c}">`).join('')}</datalist></td>
-            
             <td><textarea name="col4" placeholder="例如: 堆高機"></textarea></td>
             <td><textarea name="col5" placeholder="例如: 電力"></textarea></td>
             <td><textarea name="col6" placeholder="例如: 操作證"></textarea></td>
-            
             <td><input list="hazardList" name="col7" placeholder="選/填..."><datalist id="hazardList">${commonHazards.map(c=>`<option value="${c}">`).join('')}</datalist></td>
-            
             <td><textarea name="col8" placeholder="描述後果..."></textarea></td>
             <td><textarea name="col9" placeholder="工程控制"></textarea></td>
             <td><textarea name="col10" placeholder="管理控制"></textarea></td>
             <td><textarea name="col11" placeholder="PPE"></textarea></td>
-            
-            <td><select name="s_pre" onchange="calcRisk(this)">${createOptions(sDesc)}</select></td>
-            <td><select name="p_pre" onchange="calcRisk(this)">${createOptions(pDesc)}</select></td>
+            <td><select name="s_pre" onchange="calcRisk(this); saveAllData();">${createOptions(sDesc)}</select></td>
+            <td><select name="p_pre" onchange="calcRisk(this); saveAllData();">${createOptions(pDesc)}</select></td>
             <td class="risk-cell" id="risk_pre"></td>
-            
             <td><textarea name="col15" placeholder="改善措施..."></textarea></td>
-            
-            <td><select name="s_post" onchange="calcRisk(this)">${createOptions(sDesc)}</select></td>
-            <td><select name="p_post" onchange="calcRisk(this)">${createOptions(pDesc)}</select></td>
+            <td><select name="s_post" onchange="calcRisk(this); saveAllData();">${createOptions(sDesc)}</select></td>
+            <td><select name="p_post" onchange="calcRisk(this); saveAllData();">${createOptions(pDesc)}</select></td>
             <td class="risk-cell" id="risk_post"></td>
         `;
         tbody.appendChild(tr);
+    
+        // 如果有舊資料，自動填入
+        if (data) {
+            for (let key in data) {
+                const el = tr.querySelector(`[name="${key}"]`);
+                if (el) el.value = data[key];
+            }
+            // 觸發風險計算顯示顏色
+            tr.querySelectorAll('select').forEach(s => calcRisk(s));
+        }
     }
-
+    
     function calcRisk(element) {
         const row = element.closest('tr');
         const type = element.name.includes('pre') ? 'pre' : 'post';
-        
         const s = row.querySelector(`select[name="s_${type}"]`).value;
         const p = row.querySelector(`select[name="p_${type}"]`).value;
         const resultCell = row.querySelector(`#risk_${type}`);
-        
         if (s && p) {
             const level = riskMatrix[s][p];
-            let className = "risk-" + level;
-            let label = level;
-            
-            if(level >= 5) label += " (重大)";
-            else if(level == 4) label += " (高度)";
-            else if(level == 3) label += " (中度)";
-            else if(level == 2) label += " (低度)";
-            else label += " (輕度)";
-
+            let label = level + (level >= 5 ? " (重大)" : level == 4 ? " (高度)" : level == 3 ? " (中度)" : level == 2 ? " (低度)" : " (輕度)");
             resultCell.textContent = label;
-            resultCell.className = "risk-cell " + className;
-            resultCell.dataset.value = label; 
+            resultCell.className = "risk-cell risk-" + level;
+            resultCell.dataset.value = label;
         } else {
-            resultCell.textContent = "";
-            resultCell.className = "risk-cell";
-            resultCell.dataset.value = "";
+            resultCell.textContent = ""; resultCell.className = "risk-cell"; resultCell.dataset.value = "";
         }
     }
-
+    
+    // 核心功能：儲存所有資料（包含表格內容與列數）
+    function saveAllData() {
+        const allData = {
+            headers: {},
+            rows: []
+        };
+        // 存頁首
+        document.querySelectorAll('.header-inputs input').forEach(el => {
+            allData.headers[el.id] = el.value;
+        });
+        // 存每一行
+        document.querySelectorAll('#assessmentTable tbody tr').forEach(tr => {
+            const rowData = {};
+            tr.querySelectorAll('input, select, textarea').forEach(el => {
+                if(el.name) rowData[el.name] = el.value;
+            });
+            allData.rows.push(rowData);
+        });
+        localStorage.setItem('ral_full_backup', JSON.stringify(allData));
+    }
+    
+    // 核心功能：載入所有資料
+    window.addEventListener('load', function() {
+        const saved = localStorage.getItem('ral_full_backup');
+        if (saved) {
+            const allData = JSON.parse(saved);
+            // 回復頁首
+            for (let id in allData.headers) {
+                if(document.getElementById(id)) document.getElementById(id).value = allData.headers[id];
+            }
+            // 回復表格（清空初始列並重建）
+            document.querySelector("#assessmentTable tbody").innerHTML = "";
+            if (allData.rows.length > 0) {
+                allData.rows.forEach(rowData => addRow(rowData));
+            } else {
+                addRow();
+            }
+        } else {
+            addRow();
+        }
+        // 監聽所有輸入以觸發儲存
+        document.addEventListener('input', saveAllData);
+    });
+    
     function exportCSV() {
+        saveAllData(); // 匯出前先存檔
+        // ... 原本的 exportCSV 代碼保持不變 ...
         const company = document.getElementById('companyName').value.trim();
         const dept = document.getElementById('department').value.trim();
         const date = document.getElementById('date').value.trim();
         const assessor = document.getElementById('assessor').value.trim();
         const reviewer = document.getElementById('reviewer').value.trim();
-
         let csv = [];
         csv.push(`公司名稱,,部門,,評估日期,,評估人員,,,,審核者,,,,,,,,`);
         csv.push(`${company},,${dept},,${date},,${assessor},,,,${reviewer},,,,,,,,`);
         csv.push(`作業編號,作業名稱,作業週期,作業環境,機械/設備/工具,能源/化學物質,作業資格,危害類型,危害可能造成後果之情境描述,工程控制,管理控制,個人防護具,嚴重度(S),可能性(P),風險等級,降低風險所採取之控制措施,控制後嚴重度,控制後可能性,控制後風險等級,`);
-
         document.querySelectorAll("#assessmentTable tbody tr").forEach(tr => {
             let row = [];
             const getVal = (name) => `"${(tr.querySelector(`[name="${name}"]`)?.value || "").replace(/"/g, '""')}"`;
             const getRisk = (id) => `"${(tr.querySelector(`#${id}`).dataset.value || "").replace(/"/g, '""')}"`;
-
-            row.push(getVal("col_no"));   
-            row.push(getVal("col_name")); 
-            row.push(getVal("col2")); 
-            row.push(getVal("col3")); 
-            row.push(getVal("col4")); 
-            row.push(getVal("col5")); 
-            row.push(getVal("col6")); 
-            row.push(getVal("col7")); 
-            row.push(getVal("col8")); 
-            row.push(getVal("col9")); 
-            row.push(getVal("col10")); 
-            row.push(getVal("col11")); 
-            
-            row.push(getVal("s_pre"));
-            row.push(getVal("p_pre"));
-            row.push(getRisk("risk_pre"));
-            
-            row.push(getVal("col15")); 
-            
-            row.push(getVal("s_post"));
-            row.push(getVal("p_post"));
-            row.push(getRisk("risk_post"));
-            
+            row.push(getVal("col_no"), getVal("col_name"), getVal("col2"), getVal("col3"), getVal("col4"), getVal("col5"), getVal("col6"), getVal("col7"), getVal("col8"), getVal("col9"), getVal("col10"), getVal("col11"), getVal("s_pre"), getVal("p_pre"), getRisk("risk_pre"), getVal("col15"), getVal("s_post"), getVal("p_post"), getRisk("risk_post"));
             csv.push(row.join(","));
         });
-
         const csvContent = "\uFEFF" + csv.join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `風險評估表_${date || 'new'}.csv`;
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
     }
-
-    window.onload = addRow;
+    
 </script>
 
 </body>
 </html>
+
 
