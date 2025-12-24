@@ -140,6 +140,7 @@
         .btn-group { margin-top: 30px; display: flex; gap: 15px; justify-content: center; }
         button.action-btn { padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
         button.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        <button class="action-btn" style="background-color: #95a5a6;" onclick="clearAllData()">🗑️ 清空重置</button>
         
         .btn-add { background-color: #20bf6b; color: white; }
         .btn-add:hover { background-color: #26de81; }
@@ -416,6 +417,13 @@
         // 監聽所有輸入以觸發儲存
         document.addEventListener('input', saveAllData);
     });
+
+    function clearAllData() {
+        if (confirm("確定要清空所有填寫內容嗎？此動作無法復原。")) {
+            localStorage.removeItem('ral_full_backup'); // 刪除存檔
+            location.reload(); // 重新整理頁面
+        }
+    }
     
     function exportCSV() {
         saveAllData(); // 匯出前先存檔
@@ -448,5 +456,6 @@
 
 </body>
 </html>
+
 
 
