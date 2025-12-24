@@ -2,7 +2,7 @@
   "name": "風險評估表生成器",
   "short_name": "風險評估",
   "description": "快速生成與計算風險評估等級的工具",
-  "start_url": "./RAL.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f2f5",
   "theme_color": "#2c3e50",
@@ -20,4 +20,5 @@
       "type": "image/png"
     }
   ]
+
 }
